@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" type="image/x-icon" href="https://cdn.autodesk.io/favicon.ico">
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.css">
+    <link rel="stylesheet" href="/app.css">
+    <title>APS Simple Viewer - Netlify</title>
+</head>
+
+<body>
+    <div id="header">
+        <img class="logo" src="https://cdn.autodesk.io/logo/black/stacked.png" alt="Autodesk Platform Services">
+        <span class="title">Simple Viewer (Netlify)</span>
+        <select name="models" id="models"></select>
+        <button id="upload" title="Upload New Model">Upload</button>
+        <button id="translate" title="Translate Selected Model" style="display: none;">Translate</button>
+        <button id="summary" title="Show Model Summary" style="display: none;">Summary</button>
+        <input style="display: none" type="file" id="input" accept=".rvt,.dwg,.ifc,.nwd,.3ds,.obj,.stl,.zip">
+    </div>
+    
+    <div id="preview"></div>
+    <div id="overlay"></div>
+    <div id="summary-panel" style="display: none;">
+        <div class="panel-header">
+            <h3>Model Summary</h3>
+            <button id="close-summary">×</button>
+        </div>
+        <div class="panel-content">
+            <div id="summary-stats"></div>
+            <div id="summary-categories"></div>
+        </div>
+    </div>
+    
+    <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.js"></script>
+    <script src="/app.js" type="module"></script>
+</body>
+
+</html>
