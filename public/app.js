@@ -97,7 +97,7 @@ async function uploadFile(file) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                bucketKey: process.env.APS_BUCKET || 'default-bucket',
+                bucketKey: 'default-bucket', // Function will use APS_BUCKET from Netlify env vars
                 objectKey: file.name,
                 size: file.size
             })
@@ -149,7 +149,7 @@ async function uploadFile(file) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                bucketKey: process.env.APS_BUCKET || 'default-bucket',
+                bucketKey: 'default-bucket', // Function will use APS_BUCKET from Netlify env vars
                 objectKey: file.name,
                 uploadKey: uploadData.uploadKey
             })

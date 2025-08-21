@@ -11,7 +11,7 @@ async function getInternalToken() {
             client_id: APS_CLIENT_ID,
             client_secret: APS_CLIENT_SECRET,
             grant_type: 'client_credentials',
-            scope: 'data:read data:write bucket:read bucket:create'
+            scope: 'data:read data:write bucket:read'
         })
     });
 
@@ -23,39 +23,21 @@ async function getInternalToken() {
     return data.access_token;
 }
 
-// Helper function to ensure bucket exists
-async function ensureBucketExists(accessToken) {
-    try {
-        const response = await fetch(`https://developer.api.autodesk.com/oss/v2/buckets/${APS_BUCKET}`, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
-
-        if (response.status === 404) {
-            // Create bucket if it doesn't exist
-            const createResponse = await fetch('https://developer.api.autodesk.com/oss/v2/buckets', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/vnd.api+json'
-                },
-                body: JSON.stringify({
-                    bucketKey: APS_BUCKET,
-                    policyKey: 'persistent'
-                })
-            });
-
-            if (!createResponse.ok) {
-                throw new Error(`Failed to create bucket: ${createResponse.status}`);
-            }
-        } else if (!response.ok) {
-            throw new Error(`Bucket check failed: ${response.status}`);
+// Helper function to check bucket accessibility
+async function checkBucketAccess(accessToken) {
+    const response = await fetch(`https://developer.api.autodesk.com/oss/v2/buckets/${APS_BUCKET}`, {
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
         }
-    } catch (error) {
-        console.error('Bucket operation error:', error);
-        throw error;
+    });
+    
+    if (response.status === 404) {
+        throw new Error(`Bucket '${APS_BUCKET}' does not exist. Please create it manually in APS Object Storage.`);
+    } else if (!response.ok) {
+        throw new Error(`Bucket access failed: ${response.status}`);
     }
+    
+    return true;
 }
 
 exports.handler = async (event, context) => {
@@ -98,7 +80,9 @@ exports.handler = async (event, context) => {
         }
 
         const accessToken = await getInternalToken();
-        await ensureBucketExists(accessToken);
+        
+        // Check if bucket is accessible
+        await checkBucketAccess(accessToken);
 
         // Determine if multipart upload is needed (≥100 MB)
         const useMultipart = size >= 100 * 1024 * 1024; // 100 MB

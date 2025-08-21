@@ -23,39 +23,21 @@ async function getInternalToken() {
     return data.access_token;
 }
 
-// Helper function to ensure bucket exists
-async function ensureBucketExists(accessToken) {
-    try {
-        const response = await fetch(`https://developer.api.autodesk.com/oss/v2/buckets/${APS_BUCKET}`, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
-
-        if (response.status === 404) {
-            // Create bucket if it doesn't exist
-            const createResponse = await fetch('https://developer.api.autodesk.com/oss/v2/buckets', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/vnd.api+json'
-                },
-                body: JSON.stringify({
-                    bucketKey: APS_BUCKET,
-                    policyKey: 'persistent'
-                })
-            });
-
-            if (!createResponse.ok) {
-                throw new Error(`Failed to create bucket: ${createResponse.status}`);
-            }
-        } else if (!response.ok) {
-            throw new Error(`Bucket check failed: ${response.status}`);
+// Helper function to check bucket accessibility
+async function checkBucketAccess(accessToken) {
+    const response = await fetch(`https://developer.api.autodesk.com/oss/v2/buckets/${APS_BUCKET}`, {
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
         }
-    } catch (error) {
-        console.error('Bucket operation error:', error);
-        throw error;
+    });
+    
+    if (response.status === 404) {
+        throw new Error(`Bucket '${APS_BUCKET}' does not exist. Please create it manually in APS Object Storage.`);
+    } else if (!response.ok) {
+        throw new Error(`Bucket access failed: ${response.status}`);
     }
+    
+    return true;
 }
 
 exports.handler = async (event, context) => {
@@ -83,7 +65,24 @@ exports.handler = async (event, context) => {
         }
 
         const accessToken = await getInternalToken();
-        await ensureBucketExists(accessToken);
+        
+        // Check if bucket is accessible
+        try {
+            const bucketResponse = await fetch(`https://developer.api.autodesk.com/oss/v2/buckets/${APS_BUCKET}`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            
+            if (bucketResponse.status === 404) {
+                throw new Error(`Bucket '${APS_BUCKET}' does not exist. Please create it manually in APS Object Storage.`);
+            } else if (!bucketResponse.ok) {
+                throw new Error(`Bucket access failed: ${bucketResponse.status}`);
+            }
+        } catch (error) {
+            console.error('Bucket access error:', error);
+            throw new Error(`Bucket '${APS_BUCKET}' is not accessible. Please ensure it exists and your app has access to it.`);
+        }
 
         // Get objects from the bucket
         let allObjects = [];
