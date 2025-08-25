@@ -82,7 +82,16 @@ exports.handler = async (event, context) => {
         const accessToken = await getInternalToken();
         
         // Check if bucket is accessible
-        await checkBucketAccess(accessToken);
+        try {
+            await checkBucketAccess(accessToken);
+        } catch (error) {
+            console.error('Bucket access error:', error);
+            if (error.message.includes('Failed to create bucket')) {
+                throw new Error(`Bucket '${APS_BUCKET}' does not exist. Please create it manually in APS Object Storage before uploading files.`);
+            } else {
+                throw new Error(`Bucket '${APS_BUCKET}' is not accessible. Please ensure it exists and your app has access to it.`);
+            }
+        }
 
         // Determine if multipart upload is needed (≥100 MB)
         const useMultipart = size >= 100 * 1024 * 1024; // 100 MB

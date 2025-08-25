@@ -62,10 +62,15 @@ function setupModelUpload() {
     const uploadBtn = document.getElementById('upload');
     const fileInput = document.getElementById('input');
     
+    if (!fileInput) {
+        console.error('File input element not found');
+        return;
+    }
+    
     uploadBtn.onclick = () => fileInput.click();
     
-    fileInput.onchange = async () => {
-        const file = fileInput.files[0];
+    fileInput.onchange = async (event) => {
+        const file = event.target.files[0];
         if (!file) return;
         
         // Validate file type
@@ -97,7 +102,6 @@ async function uploadFile(file) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                bucketKey: 'default-bucket', // Function will use APS_BUCKET from Netlify env vars
                 objectKey: file.name,
                 size: file.size
             })
@@ -149,7 +153,6 @@ async function uploadFile(file) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                bucketKey: 'default-bucket', // Function will use APS_BUCKET from Netlify env vars
                 objectKey: file.name,
                 uploadKey: uploadData.uploadKey
             })

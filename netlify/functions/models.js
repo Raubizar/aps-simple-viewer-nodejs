@@ -81,7 +81,11 @@ exports.handler = async (event, context) => {
             }
         } catch (error) {
             console.error('Bucket access error:', error);
-            throw new Error(`Bucket '${APS_BUCKET}' is not accessible. Please ensure it exists and your app has access to it.`);
+            if (error.message.includes('Failed to create bucket')) {
+                throw new Error(`Bucket '${APS_BUCKET}' does not exist. Please create it manually in APS Object Storage before uploading files.`);
+            } else {
+                throw new Error(`Bucket '${APS_BUCKET}' is not accessible. Please ensure it exists and your app has access to it.`);
+            }
         }
 
         // Get objects from the bucket
